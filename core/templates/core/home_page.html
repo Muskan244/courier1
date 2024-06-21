@@ -1,0 +1,54 @@
+<!--
+Home Page:-
+-background image
+-short points of website services
+-option to sign up and log in
+-how our sevice works
+-->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Courier</title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+    </head>
+    <body>
+        <header>
+            <nav class="navbar">
+                <a href="#" class="logo">DeliverMe<span>.</span></a>
+                <ul class="menu-links">
+                    <span id="close-menu-btn" class="material-symbols-outlined">close</span>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+                <span id="menu-btn" class="material-symbols-outlined">menu</span>
+            </nav>
+        </header>
+        <section class="hero-section">
+            <div class="content">
+                <h1>Turn your travels into deliveries</h1>
+                <p>
+                    Enable travelers to transport parcels during their trips, earning rewards while facilitating fast and reliable deliveries between senders and recipients.
+                </p>
+                <button>Sign Up Now</button>
+            </div>
+        </section>
+
+        <script>
+            const header = document.querySelector("header");
+            const menuBtn = document.querySelector("#menu-btn");
+            const closeMenuBtn = document.querySelector("#close-menu-btn");
+
+            menuBtn.addEventListener("click", () => {
+                header.classList.toggle("show-mobile-menu");
+            });
+
+            closeMenuBtn.addEventListener("click", () => {
+                menuBtn.click();
+            });
+    </body>
+</html>
