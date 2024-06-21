@@ -32,6 +32,7 @@ header .navbar {
 }
 
 .navbar .logo {
+    color: #fff;
     font-size: 2.1rem;
     font-weight: 600;
 }
@@ -133,7 +134,7 @@ header .navbar {
 
     .navbar .menu-links {
         position: fixed;
-        left: -260;
+        left: -260px;
         top: 0;
         flex-direction: column;
         width: 260px;
