@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in and Sign up form</title>
+    <link rel="stylesheet" href="/style_index.css">
+    <script src="https://kit.fontawesome.com/7c516c1e3d.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="form-box">
+            <h1 class="title">DropMe</h1>
+            <h2 id="title">Sign up</h2>
+            <form id="userForm">
+                <div class="input_group">
+                    <div class="input-field" id="nameField">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" placeholder="Name" id="name">
+                    </div>
+                    <div class="input-field">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="email" placeholder="Email" id="email">
+                    </div>
+                    <div class="input-field">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" placeholder="Password" id="password">
+                    </div>
+                    <p>Forgot password <a href="https://support.google.com/accounts/answer/41078?hl=en&co=GENIE.Platform%3DDesktop">click here!</a></p>
+                </div>
+                <div class="btn-field">
+                    <button type="button" id="signupbtn">Sign Up</button>
+                    <button type="button" id="signinbtn" class="disable">Sign In</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        let signupbtn = document.getElementById('signupbtn');
+        let signinbtn = document.getElementById('signinbtn');
+        let nameField = document.getElementById('nameField');
+        let title = document.getElementById('title');
+
+        signinbtn.onclick = function() {
+            nameField.style.maxHeight = '0';
+            title.innerHTML = 'Sign In';
+            signupbtn.classList.add('disable');
+            signinbtn.classList.remove('disable');
+        }
+
+        signupbtn.onclick = function() {
+            nameField.style.maxHeight = '60px';
+            title.innerHTML = 'Sign up';
+            signupbtn.classList.remove('disable');
+            signinbtn.classList.add('disable');
+        }
+
+        document.getElementById('userForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const endpoint = title.innerHTML === 'Sign up' ? '/signup' : '/login';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const result = await response.text();
+                alert(result);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
