@@ -40,6 +40,25 @@ Home Page:-
             </div>
         </section>
 
+        <section>
+            <h2>Available Parcels</h2>
+            <ul>
+                {% for parcel in parcels %}
+                    <li><a href='#'>by {{ parcel.sender }} {{ parcel.description }}</a></li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <section>
+            <h2>Travel Details</h2>
+            <ul>
+                {% for travel in travel_details %}
+                    <li>{{ travel.origin }} to {{ travel.destination }} on {{ travel.travel_date }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+
         <script>
             const header = document.querySelector("header");
             const menuBtn = document.querySelector("#menu-btn");
