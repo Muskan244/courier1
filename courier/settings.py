@@ -150,3 +150,5 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000', # default port for React
     'http://localhost:8000', # default port for django
 )
+
+#AUTH_USER_MODEL = 'api.User' # This tells Django to use custom User model from the api app as the default user model.

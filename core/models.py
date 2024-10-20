@@ -4,44 +4,12 @@ from django.db import models
 from django.utils import timezone
 
 # Create your models here.
-class Review(models.Model):
-    content = models.TextField()
-    rating = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'Review by {self.author.username} - Rating: {self.rating}'
-
-class CustomUser(AbstractUser):
-    aadhar = models.CharField(max_length=12)
-    user_type = models.CharField(max_length=10) # sender or traveler
-    rating = models.FloatField(default=0.0)
-    reviews = models.ManyToManyField('Review', blank=True, related_name='reviewed_users')
-
-    groups = models.ManyToManyField(
-        Group,
-        related_name='customuser_set',
-        blank=True,
-        help_text=('The groups this user belongs to. A user will get all permissions granted to each of their groups.'),
-        related_query_name='customuser',
-    )
-    user_permissions = models.ManyToManyField(
-        Permission,
-        related_name='customuser_set',
-        blank=True,
-        help_text='Specific permissions for this user.',
-        related_query_name='customuser',
-    )
-
-    def __str__(self):
-        return self.username
-    
 class Parcel(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_parcels')
     traveling_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='travel_parcels')
     description = models.TextField()
     weight = models.FloatField()
+    origin = models.CharField(max_length=255, default="Unknown")
     destination = models.CharField(max_length=255)
     deadline = models.DateField()
     status = models.CharField(max_length=10, default='pending')

@@ -124,9 +124,13 @@
                                 {% if parcel.traveling_user %}
                                     <p>Traveler: {{ parcel.traveling_user.username }}</p>
                                 {% else %}
-                                    <form method="post" action="{% url 'become_traveler' parcel.id %}">
+                                    <!--<div>
+                                         Become Traveler Button 
+                                        <button id="become-traveler-btn" class="btn-small-green">Become Traveler</button>
+                                    </div>-->
+                                    <form method="POST" action="{% url 'become_traveler' parcel.id %}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn-small green">Become Traveler</button>
+                                        <button type="submit">Become Traveler</button>
                                     </form>
                                 {% endif %}
                             </li>
@@ -230,26 +234,6 @@
             </a>
           </div>
         </div>
-<!--
-        <li><a href="{% url 'review_requests' %}">Review Requests</a></li>
-
-        <div class="container">
-            <h2>Notifications</h2>
-            <ul class="collection">
-                {% for notification in notifications %}
-                    <li class="collection-item">
-                        {{ notification.message }}
-                        <form method="post" action="{% url 'mark_notification_as_read' notification.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-small">Mark as Read</button>
-                        </form>
-                    </li>
-                {% empty %}
-                    <li class="collection-item">No new notifications.</li>
-                {% endfor %}
-            </ul>
-        </div>-->
-        <!-- Modal Structure -->
         <div id="deleteModal" class="modal">
           <div class="modal-content">
             <h4>Confirm Deletion</h4>
@@ -303,19 +287,47 @@
                 });
             });
 
-            document.querySelectorAll('.delete-btn').forEach(function(button) {
-                button.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    var parcelId = this.getAttribute('data-id');
-                    var deleteForm = document.getElementById('deleteForm');
-                    var deleteUrl = '{% url "parcel-delete" 999 %}'.replace('999', parcelId);
+            document.addEventListener('DOMContentLoaded', function() {
+                // Get the button and form elements
+                const becomeTravelerBtn = document.getElementById('become-traveler-btn');
+                const travelerForm = document.getElementById('traveler-form');
 
-                    deleteForm.setAttribute('action', deleteUrl);
-
-                    // Open the modal
-                    var instance = M.Modal.getInstance(document.getElementById('deleteModal'));
-                    instance.open();
+                // Add click event listener to the button
+                becomeTravelerBtn.addEventListener('click', function() {
+                    // Toggle form visibility
+                    if (travelerForm.style.display === "none") {
+                        travelerForm.style.display = "block";  // Show the form
+                    } else {
+                        travelerForm.style.display = "none";   // Hide the form
+                    }
                 });
+            });
+
+            document.getElementById('traveler-form').addEventListener('submit', async function(event) {
+                event.preventDefault();  // Prevent the form from refreshing the page
+                const pnr = document.getElementById('pnr').value;
+                const origin = document.getElementById('origin').value;
+                const destination = document.getElementById('destination').value;
+
+                const response = await fetch('/validate-pnr/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    pnr: pnr,
+                    origin: origin,
+                    destination: destination
+                }),
+                });
+
+                const data = await response.json();
+                
+                if (data.is_valid) {
+                    alert("PNR, Origin, and Destination are valid!");
+                } else {
+                    alert("Invalid PNR or station details.");
+                }
             });
         </script>
     </body>

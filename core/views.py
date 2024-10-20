@@ -1,10 +1,10 @@
 from django.forms import BaseModelForm
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Review, CustomUser, Parcel, TravelDetails, Message, Notification
+from .models import Parcel, TravelDetails, Message, Notification
 from django.utils import timezone
 from django.contrib.auth.views import LoginView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth import logout
 from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.forms import UserCreationForm
@@ -17,6 +17,10 @@ from django.db.models import Q
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.views.generic import View, ListView
+from django.views import View
+import requests
+import json
+from .services import check_pnr_status, verify_route
 
 # Create your views here.
 def logout_view(request):
@@ -73,7 +77,7 @@ def home_page(request):
 
 class ParcelCreate(LoginRequiredMixin, CreateView):
     model = Parcel
-    fields = ['description', 'weight', 'destination', 'deadline']
+    fields = ['description', 'weight', 'origin', 'destination', 'deadline']
     template_name = 'core/parcel_edit.html'
 
     def get_success_url(self):
@@ -87,7 +91,7 @@ class ParcelCreate(LoginRequiredMixin, CreateView):
 
 class ParcelUpdate(LoginRequiredMixin, UpdateView):
     model = Parcel
-    fields = ['description', 'weight', 'destination', 'deadline']
+    fields = ['description', 'weight', 'origin', 'destination', 'deadline']
     template_name = 'core/parcel_edit.html'
 
     def dispatch(self, request, *args, **kwargs):
@@ -174,20 +178,36 @@ class BecomeTravelerView(LoginRequiredMixin, View):
         parcel_id = self.kwargs.get('parcel_id')
         parcel = get_object_or_404(Parcel, id=parcel_id)
 
-        if parcel.traveling_user:
-            messages.error(request, 'This parcel already has a traveler.')
-            return redirect('user_page')
+        sender_origin = parcel.origin
+        sender_destination = parcel.destination
 
-        # send a message to the sender
-        sender = parcel.sender
-        subject = f"Request to Become Traveler for Parcel ID: {parcel.id}"
-        message_content = f"Dear {sender.username},\n\nI am interested in becoming the traveler for the parcel with description: '{parcel.description}'. Please confirm if you approve.\n\nSincerely,\n{request.user.username}"
+        return redirect(f"{reverse('pnr_validation_page')}?sender_origin={sender_origin}&sender_destination={sender_destination}")
+    
+class PnrValidationView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        sender_origin = request.GET.get('sender_origin')
+        sender_destination = request.GET.get('sender_destination')
+        return render(request, 'core/pnr_valid.html', {
+            'origin': sender_origin, 
+            'destination': sender_destination
+        })
+    
+    def post(self, request, *args, **kwargs):
+        origin = request.POST.get('origin')
+        destination = request.POST.get('destination')
+        pnr_number = request.POST.get('pnr_number')
+        sender_origin = request.POST.get('sender_origin')
+        sender_destination = request.POST.get('sender_destination')
 
-        message = Message.objects.create(sender=request.user, recipient=sender, parcel=parcel, subject=subject, message=message_content)
+        print(f"Origin: {origin}, Destination: {destination}, PNR: {pnr_number}, SenderOrigin: {sender_origin}, SenderDestination: {sender_destination}")  # Debug output
 
-        messages.success(request, 'Your request has been sent to the parcel sender for confirmation.')
-        return redirect('user_page')
+        if not origin or not destination or not pnr_number:
+            return JsonResponse({'message': 'All fields are required.'}, status=400)
 
+        is_valid, message = verify_route(origin, destination, pnr_number, sender_origin, sender_destination)
+        print(f"Validation Result: {is_valid}, Message: {message}")  # Debug output
+        return JsonResponse({'message': message}, status=200 if is_valid else 400)
+    
 class ReviewRequestsView(LoginRequiredMixin, ListView):
     model = Message
     template_name = 'core/review_requests.html'
@@ -230,3 +250,15 @@ def mark_notification_as_read(request, notification_id):
     notification.read = True
     notification.save()
     return redirect('user_page')
+
+'''class ValidatePNRAndRouteView(View):
+    def post(self, request, *args, **kwargs):
+        origin = request.POST.get('origin')
+        destination = request.POST.get('destination')
+        pnr_number = request.POST.get('pnr_number')
+
+        if not origin or not destination or not pnr_number:
+            return JsonResponse({'message': 'All fields are required.'}, status=400)
+
+        is_valid, message = verify_route(origin, destination, pnr_number)
+        return JsonResponse({'message': message}, status=200 if is_valid else 400)'''

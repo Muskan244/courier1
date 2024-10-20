@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import user_page, home_page, CustomLoginView, logout_view, SignupPage, ParcelCreate, ParcelUpdate, ParcelDetail, ParcelDelete, TravelCreate, TravelUpdate, TravelDelete, BecomeTravelerView, ReviewRequestsView, ConfirmTravelerView, mark_notification_as_read
+from .views import user_page, home_page, CustomLoginView, logout_view, SignupPage, ParcelCreate, ParcelUpdate, ParcelDetail, ParcelDelete, TravelCreate, TravelUpdate, TravelDelete, BecomeTravelerView, ReviewRequestsView, ConfirmTravelerView, mark_notification_as_read, PnrValidationView
 
 urlpatterns = [
     path('', home_page, name='home_page'), # url for the homepage
@@ -18,4 +18,6 @@ urlpatterns = [
     path('review_requests/', ReviewRequestsView.as_view(), name='review_requests'),
     path('confirm_traveler/<int:message_id>/', ConfirmTravelerView.as_view(), name='confirm_traveler'),
     path('mark_notification_as_read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+    #path('validate_pnr/', ValidatePNRAndRouteView.as_view(), name='validate_pnr'),
+    path('pnr-validation/', PnrValidationView.as_view(), name='pnr_validation_page'),
 ]

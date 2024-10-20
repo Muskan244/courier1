@@ -70,7 +70,7 @@ main {
     color: #fff;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-    display: inline-flex;
+    /*display: inline-flex;*/
     align-items: center;
     justify-content: center;
 }
@@ -220,6 +220,10 @@ main {
     font-size: 0.9em;
     opacity: 0;
     animation: fadeIn 0.3s forwards;
+}
+
+#traveler-form {
+    display: none;
 }
 
 .modal-content {
