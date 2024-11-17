@@ -14,13 +14,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.list import ListView
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.contrib import messages
 from django.views.generic import View, ListView
 from django.views import View
 import requests
 import json
-from .services import check_pnr_status, verify_route
+from .services import check_pnr_status, verify_route, send_notification_to_sender
+from django.contrib.auth.models import User
 
 # Create your views here.
 def logout_view(request):
@@ -178,10 +179,11 @@ class BecomeTravelerView(LoginRequiredMixin, View):
         parcel_id = self.kwargs.get('parcel_id')
         parcel = get_object_or_404(Parcel, id=parcel_id)
 
+        sender = parcel.sender
         sender_origin = parcel.origin
         sender_destination = parcel.destination
 
-        return redirect(f"{reverse('pnr_validation_page')}?sender_origin={sender_origin}&sender_destination={sender_destination}")
+        return redirect(f"{reverse('pnr_validation_page')}?sender={sender}&sender_origin={sender_origin}&sender_destination={sender_destination}&parcel={parcel}")
     
 class PnrValidationView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
@@ -198,14 +200,27 @@ class PnrValidationView(LoginRequiredMixin, View):
         pnr_number = request.POST.get('pnr_number')
         sender_origin = request.POST.get('sender_origin')
         sender_destination = request.POST.get('sender_destination')
+        sender = request.POST.get('sender')
+        traveler = self.request.user
+        parcel = request.POST.get('parcel')
 
-        print(f"Origin: {origin}, Destination: {destination}, PNR: {pnr_number}, SenderOrigin: {sender_origin}, SenderDestination: {sender_destination}")  # Debug output
+        #print(f"Origin: {origin}, Destination: {destination}, PNR: {pnr_number}, SenderOrigin: {sender_origin}, SenderDestination: {sender_destination}")  # Debug output
 
-        if not origin or not destination or not pnr_number:
-            return JsonResponse({'message': 'All fields are required.'}, status=400)
+        #if not origin or not destination or not pnr_number:
+          #  return JsonResponse({'message': 'All fields are required.'}, status=400)
 
-        is_valid, message = verify_route(origin, destination, pnr_number, sender_origin, sender_destination)
+        is_valid, message = check_pnr_status(pnr_number)
+        #is_valid, message = verify_route(origin, destination, pnr_number, sender_origin, sender_destination)
         print(f"Validation Result: {is_valid}, Message: {message}")  # Debug output
+
+        # send a confirmation request to the sender
+        notification_status = send_notification_to_sender(
+            sender, sender_origin, sender_destination, traveler, origin, destination, pnr_number, parcel
+        )
+
+        if notification_status and is_valid:
+            message += ". Notification for confirmation is sent to the sender."
+
         return JsonResponse({'message': message}, status=200 if is_valid else 400)
     
 class ReviewRequestsView(LoginRequiredMixin, ListView):
@@ -228,21 +243,34 @@ class ConfirmTravelerView(LoginRequiredMixin, View):
 
         # Get the parcel associated with the message
         parcel = message.parcel
+        
+        if not parcel:
+            # Handle the case where the parcel does not exist or is not associated with a message
+            messages.error(request, "This message is not linked to any parcel.")
+            return redirect('user_page')
+
+        # Ensure that the sender (traveler) is not already assigned to the parcel
+        if parcel.traveling_user:
+            messages.warning(request, f"Traveler already assigned to this parcel: {parcel.traveling_user.username}.")
+            return redirect('user_page')
 
         # Set the traveling_user to the sender of the message
         parcel.traveling_user = message.sender
         parcel.save()
 
-        # create a notification for the traveler
+        # Create a notification for the traveler (the sender of the message is the traveler)
         notification = Notification.objects.create(
-            user=parcel.traveling_user,
+            user=parcel.traveling_user,  # traveler is the sender in this case
             message=f'You have been confirmed as the traveler for the parcel: {parcel.description}'
         )
+
+        # Add a success message
+        messages.success(request, f"You have successfully confirmed {message.sender.username} as the traveler for the parcel: {parcel.description}.")
 
         # Delete the message after confirming
         message.delete()
 
-        return redirect('review_requests')
+        return redirect('user_page')
 
 @login_required
 def mark_notification_as_read(request, notification_id):
