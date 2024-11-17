@@ -38,8 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Custom Apps
-    'core',
-    'api',
+    'courier.core',
+    #'core',
+    #'api',
     # 3rd party
     'rest_framework',
     'corsheaders',
