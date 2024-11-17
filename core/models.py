@@ -39,9 +39,9 @@ class TravelDetails(models.Model):
 
 class Message(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_messages')
-    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_messages')
-    parcel = models.ForeignKey(Parcel, on_delete=models.CASCADE)
-    subject = models.CharField(max_length=255)
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_messages', null=True)
+    parcel = models.ForeignKey(Parcel, on_delete=models.CASCADE, null=True, blank=True)
+    #subject = models.CharField(max_length=255)
     message = models.TextField()
     sent_date = models.DateTimeField(default=timezone.now)
     read = models.BooleanField(default=False)
@@ -51,6 +51,7 @@ class Message(models.Model):
 
 class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    #traveler = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='traveler')
     message = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)

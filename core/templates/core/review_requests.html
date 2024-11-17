@@ -11,7 +11,7 @@
             <li class="collection-item avatar">
                 <i class="material-icons circle">email</i>
                 <span class="title">Request from {{ message.sender.username }}</span>
-                <p>Parcel: {{ message.parcel.description }}</p>
+                <!--<p>Parcel: {{ message.parcel.description }}</p>-->
                 <p>{{ message.message }}</p>
                 {% if message.parcel.traveling_user %}
                     <p>Traveling User: {{ message.parcel.traveling_user.username }}</p>

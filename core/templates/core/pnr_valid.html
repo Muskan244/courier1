@@ -112,9 +112,13 @@
         const queryParams = new URLSearchParams(window.location.search);
         const sender_origin = queryParams.get('sender_origin');
         const sender_destination = queryParams.get('sender_destination');
+        const sender = queryParams.get('sender');
+        const parcel = queryParams.get('parcel');
         return {
             sender_origin: sender_origin,
-            sender_destination: sender_destination
+            sender_destination: sender_destination,
+            sender: sender, 
+            parcel: parcel
         };
     }
 
@@ -123,9 +127,9 @@
         const destination = document.getElementById('destination').value;
         const pnr = document.getElementById('pnr').value;
         const folderInput = document.getElementById('folder').files;
-        const { sender_origin, sender_destination } = getQueryParams();  // Get from URL
+        const { sender_origin, sender_destination, sender, parcel } = getQueryParams();  // Get from URL
 
-        if (!origin) {
+        /*if (!origin) {
             alert("Please enter the origin station.");
             return;
         }
@@ -133,7 +137,7 @@
         if (!destination) {
             alert("Please enter the distance traveled.");
             return;
-        }
+        }*/
 
         if (!pnr) {
             alert("Please enter a valid PNR number.");
@@ -160,7 +164,10 @@
             'destination': destination,
             'sender_origin': sender_origin,
             'sender_destination': sender_destination,
+            'sender': sender,
+            'parcel': parcel,
             'pnr_number': pnr,
+            'action': 'request_sender_confirmation', // Include action
             'csrfmiddlewaretoken': '{{ csrf_token }}'  // Include CSRF token
         };
 
